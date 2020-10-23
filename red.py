@@ -6,6 +6,7 @@ import random
 class Neuron:
     def __init__(self, previousLayer, previousLayerWeights, value, activationFunction):
         self.output = 0
+        self.delta = 0
         self.value = value
         self.activationFunction = activationFunction
         self.previousLayer = previousLayer
@@ -19,14 +20,31 @@ class NeuralNetwork:
     def __init__(self, n, m):
         self.input_layer = np.empty(n)
         self.output_layer = np.empty(m)
-        self.hidden_layers = []
-                
-    def forward(self, x):
-        if len(self.hidden_layers) != 0:
-            self.input_layer = x
+        self.hidden_layers = np.array([])
 
+    def addLayer(self, n, activationFunction):
+        layer = np.array([])
+        lenHidLay = self.hidden_layers.shape[0]
+        for i in range(n):
+            if lenHidLay != 0:
+                lenPreviousLayer = self.hidden_layers[lenHidLay - 1].shape[0]
+                neuron = Neuron(self.hidden_layers[lenHidLay - 1], np.random.random(size=(lenPreviousLayer, 1)), 0, activationFunction)
+                layer = np.append(layer, neuron)
+                print("tiene hidden layers")
+            else: 
+                print("no tiene hidden layers")
+                neuron = Neuron(np.array([]), np.array([]), 0, activationFunction)
+                layer = np.append(layer, neuron)
+        print("self.hidden_layers: ", self.hidden_layers)    
+        self.hidden_layers = np.concatenate((self.hidden_layers, layer), axis=0)    
+        self.hidden_layers = np.concatenate((self.hidden_layers, layer), axis=0)
+        print("self.hidden_layers: ", self.hidden_layers) 
+
+    def forward(self, x):
+        if self.hidden_layer.shape[0] != 0:
+            self.input_layer = x
         else:
-            print("Is not possible to use the neural network without hidden layers")    
+            print("To use the neural network your need at least an input layer, a hidden layer and an output layer")    
 
 # Sigmoid function
 def sigmoid(x, derivada=False):
@@ -34,7 +52,11 @@ def sigmoid(x, derivada=False):
         return sigmoid(x)*(1-sigmoid(x)) 
     return 1 / (1 + np.exp(-x))
 
+def test():
+    print("testing function")
 
-
+nn = NeuralNetwork(8, 2)
+nn.addLayer(10, sigmoid)
+#nn.addLayer(10, sigmoid)
 
 
