@@ -20,7 +20,20 @@ class Neuron:
             sum = sum + self.previousLayer[i].value * self.previousLayerWeights[i]
         self.value = self.activationFunction(sum)
         return self.value
+
+    def calculateDelta(self, y, i, lastLayer = False):
+        if lastLayer:
+            self.delta = (self.activationFunction(self.output) - y) * self.activationFunction(self.output, True)
+        else:
+            sum = 0
+            for neuron in self.nextLayer:
+                sum = sum + neuron.delta * neuron.previousLayerWeights[i]
+            self.delta = sum + self.activationFunction(self.output, True)
+        return self.delta
     
+    def updateWeight(self, t, i):
+        self.previousLayerWeights[i] = -t * self.delta * self.activationFunction(self.previousLayer[i].output)
+
 #Neural Network Class
 class NeuralNetwork:
     # Where n is the input_layer len and m is the output_layer len
@@ -65,9 +78,36 @@ class NeuralNetwork:
         output = np.array([])
         for neuron in self.hidden_layers[lenHidLayers - 1]:
             output = np.append(output, neuron.value)
+        self.output = output
         print("output: ", output)
         return softmax(output)
-        
+
+    def updateNextLayer(self):
+        lenHidLayers = len(self.hidden_layers)
+        for i in range(lenHidLayers - 1):
+            for neuron in self.hidden_layers[i]:
+                    neuron.nextLayer = self.hidden_layers[i + 1]   
+
+    def backPropagation(self, y):
+        lenHidLayers = len(self.hidden_layers)
+        for i in range(lenHidLayers - 1, -1, -1):
+            lenHidLay = self.hidden_layers[i].shape[0]
+            for j in range(lenHidLay):
+                if i == lenHidLayers - 1:
+                    self.hidden_layers[i][j].calculateDelta(y[j], j, True)
+                else:
+                    self.hidden_layers[i][j].calculateDelta(0, j, False)
+    
+    # in this case 15 is Tlearn factor
+    def updateWeights(self, i):
+        for neuron in self.hidden_layers[i]:
+            for j in range(neuron.previousLayer.shape[0]):
+                neuron.updateWeight(15, j)
+
+    def training(self, x, y):
+        self.forward(x)
+        self.updateNextLayer()
+        self.backPropagation(y)
 
 # Sigmoid function
 def sigmoid(x, derivada=False):
@@ -80,14 +120,21 @@ def softmax(z):
     sum_z_exp = sum(z_exp)
     return [round(i / sum_z_exp, 3) for i in z_exp]
 
+def squaredError(x, y):
+    sum = 0
+    for i in range(len(x)):
+        sum = sum + (y[i] - x[i])**2
+    return sum
+
 x = np.array([1, 2, 3, 4, 5, 6, 7, 8])
+y = np.array([0, 1])
 #print("np.sum(x): ", np.sum(x))
 nn = NeuralNetwork(8)
 nn.addLayer(5, sigmoid)
 nn.addLayer(15, sigmoid)
 nn.addLayer(10, sigmoid)
 nn.addLayer(2, sigmoid)
-output = nn.forward(x)
-print("output: ", output)
+nn.training(x, y)
+
 
 
