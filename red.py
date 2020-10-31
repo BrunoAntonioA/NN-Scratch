@@ -1,6 +1,7 @@
 import math
 import numpy as np
 import random
+import loader as loader
 
 #Neuron Class
 class Neuron:
@@ -19,6 +20,7 @@ class Neuron:
         for i in range(lenPrevLayer):
             sum = sum + self.previousLayer[i].value * self.previousLayerWeights[i]
         self.value = self.activationFunction(sum)
+        self.output = self.value
         return self.value
 
     def calculateDelta(self, y, i, lastLayer = False):
@@ -32,8 +34,8 @@ class Neuron:
         return self.delta
     
     def updateWeight(self, t, i):
-        self.previousLayerWeights[i] = -t * self.delta * self.activationFunction(self.previousLayer[i].output)
-
+        self.previousLayerWeights[i] = self.previousLayerWeights[i] - (t * self.delta * self.activationFunction(self.previousLayer[i].output))
+        
 #Neural Network Class
 class NeuralNetwork:
     # Where n is the input_layer len and m is the output_layer len
@@ -66,6 +68,7 @@ class NeuralNetwork:
                 if i == 0:
                     for neuron in self.hidden_layers[0]:          
                         neuron.value = neuron.activationFunction(np.sum(self.input_layer))
+                        neuron.output = neuron.value
                 else:
                     for neuron in self.hidden_layers[i]:
                         neuron.calculateActivation()
@@ -77,9 +80,7 @@ class NeuralNetwork:
         lenHidLayers = len(self.hidden_layers)
         output = np.array([])
         for neuron in self.hidden_layers[lenHidLayers - 1]:
-            output = np.append(output, neuron.value)
-        self.output = output
-        print("output: ", output)
+            output = np.append(output, neuron.output)
         return softmax(output)
 
     def updateNextLayer(self):
@@ -94,20 +95,31 @@ class NeuralNetwork:
             lenHidLay = self.hidden_layers[i].shape[0]
             for j in range(lenHidLay):
                 if i == lenHidLayers - 1:
-                    self.hidden_layers[i][j].calculateDelta(y[j], j, True)
+                    if j == y:    
+                        self.hidden_layers[i][j].calculateDelta(y, j, True)
+                    else: 
+                        self.hidden_layers[i][j].calculateDelta(0, j, True)
                 else:
                     self.hidden_layers[i][j].calculateDelta(0, j, False)
+            self.updateWeights(i)
     
-    # in this case 15 is Tlearn factor
+    # in this case 0.3 is Tlearn factor
     def updateWeights(self, i):
         for neuron in self.hidden_layers[i]:
-            for j in range(neuron.previousLayer.shape[0]):
-                neuron.updateWeight(15, j)
+            if i != 0:
+                for j in range(neuron.previousLayer.shape[0]):
+                    neuron.updateWeight(0.01, j)
+            else:
+                break
 
     def training(self, x, y):
-        self.forward(x)
-        self.updateNextLayer()
-        self.backPropagation(y)
+        for i in range(x.shape[0]):
+            self.forward(x[i])
+            self.updateNextLayer()
+            self.backPropagation(y[i])
+
+    def predict(self, x):
+        return self.forward(x)
 
 # Sigmoid function
 def sigmoid(x, derivada=False):
@@ -126,15 +138,30 @@ def squaredError(x, y):
         sum = sum + (y[i] - x[i])**2
     return sum
 
-x = np.array([1, 2, 3, 4, 5, 6, 7, 8])
-y = np.array([0, 1])
-#print("np.sum(x): ", np.sum(x))
-nn = NeuralNetwork(8)
-nn.addLayer(5, sigmoid)
-nn.addLayer(15, sigmoid)
+datos = loader.get_datos('./Fashion-DataSet-master/')
+dt1 = datos[0]
+labels1 = datos[2]
+dt2 = datos[1]
+labels2 = datos[3]
+
+x = dt1[:5]
+y = labels1[:5]
+
+nn = NeuralNetwork(784)
+nn.addLayer(32, sigmoid)
+nn.addLayer(64, sigmoid)
+nn.addLayer(64, sigmoid)
+nn.addLayer(32, sigmoid)
 nn.addLayer(10, sigmoid)
-nn.addLayer(2, sigmoid)
+
 nn.training(x, y)
+
+xtest = dt2[0]
+ytest = labels2[0]
+
+predi =  nn.predict(xtest)
+print("predi: ", predi)
+print("ytest: ", ytest)
 
 
 
