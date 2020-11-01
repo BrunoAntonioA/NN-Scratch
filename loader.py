@@ -6,10 +6,6 @@ from pathlib import Path
 #por ahora todo lo que tenga que ver con el segundo dataset quedará comentado
 
 def load_csv(path_to_file):
-    #verificando que argumento es string
-    #if !isinstance(path_to_file, str):
-    #    raise Exception("No se ingresó una cadena de caracteres")
-    
     #carga csv con una dirección por defecto
     if path_to_file is None:
         raw_data1 = pd.read_csv(r'./Desafio_4/Fashion-DataSet-master/fashion-1.csv')
@@ -89,7 +85,7 @@ def get_datos(path_to_file):
     return final_list
 
 
-datos = get_datos('./Fashion-DataSet-master/')
+#datos = get_datos('./Fashion-DataSet-master/')
 
 # primero dos elementos son los dataset 
 # los ultimos dos son las etiquetas 
