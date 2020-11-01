@@ -9,3 +9,4 @@ Posterior a esto se deben instalar las siguientes librerías para python3:
 
 Posterior a esto deben ejecutar el archivo red.py.
 # El link al video de presentación se encuentra en el archivo video.md
+# La coevaluación está en el archivo coevaluacion.md
